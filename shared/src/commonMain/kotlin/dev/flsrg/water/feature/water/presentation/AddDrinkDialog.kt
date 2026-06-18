@@ -117,7 +117,7 @@ fun AddDrinkMorphingSurface(
             if (expanded) 1f else 0f
         }
 
-        val bounds =
+        val geometry =
             with(density) {
                 val parentWidthPx = maxWidth.roundToPx()
                 val parentHeightPx = maxHeight.roundToPx()
@@ -136,37 +136,55 @@ fun AddDrinkMorphingSurface(
                         parentHeightPx - marginPx * 2,
                     ).coerceAtLeast(collapsedHeightPx)
 
-                val widthPx =
+                fun boundsFor(
+                    widthPx: Int,
+                    heightPx: Int,
+                ): MorphBounds {
+                    val minX = marginPx
+                    val minY = marginPx
+                    val maxX =
+                        (parentWidthPx - widthPx - marginPx)
+                            .coerceAtLeast(minX)
+                    val maxY =
+                        (parentHeightPx - heightPx - marginPx)
+                            .coerceAtLeast(minY)
+
+                    return MorphBounds(
+                        x =
+                            (anchorCenter.x - widthPx / 2)
+                                .coerceIn(minX, maxX),
+                        y =
+                            (anchorCenter.y - heightPx / 2)
+                                .coerceIn(minY, maxY),
+                        width = widthPx,
+                        height = heightPx,
+                    )
+                }
+
+                val currentWidthPx =
                     lerpInt(
                         start = collapsedWidthPx,
                         stop = expandedWidthPx,
                         fraction = progress,
                     )
-                val heightPx =
+                val currentHeightPx =
                     lerpInt(
                         start = collapsedHeightPx,
                         stop = expandedHeightPx,
                         fraction = progress,
                     )
 
-                val minX = marginPx
-                val minY = marginPx
-                val maxX =
-                    (parentWidthPx - widthPx - marginPx)
-                        .coerceAtLeast(minX)
-                val maxY =
-                    (parentHeightPx - heightPx - marginPx)
-                        .coerceAtLeast(minY)
-
-                MorphBounds(
-                    x =
-                        (anchorCenter.x - widthPx / 2)
-                            .coerceIn(minX, maxX),
-                    y =
-                        (anchorCenter.y - heightPx / 2)
-                            .coerceIn(minY, maxY),
-                    width = widthPx,
-                    height = heightPx,
+                MorphGeometry(
+                    currentBounds =
+                        boundsFor(
+                            widthPx = currentWidthPx,
+                            heightPx = currentHeightPx,
+                        ),
+                    expandedBounds =
+                        boundsFor(
+                            widthPx = expandedWidthPx,
+                            heightPx = expandedHeightPx,
+                        ),
                 )
             }
 
@@ -184,27 +202,29 @@ fun AddDrinkMorphingSurface(
                 end = 1f,
             )
         val expandedContentScale = lerpFloat(0.96f, 1f, expandedContentAlpha)
+        val shouldComposeExpandedContent =
+            isExpanded || progress > EXPANDED_CONTENT_FADE_START_PROGRESS
 
         Surface(
             modifier =
                 Modifier
                     .offset {
                         IntOffset(
-                            x = bounds.x,
-                            y = bounds.y,
+                            x = geometry.currentBounds.x,
+                            y = geometry.currentBounds.y,
                         )
                     }.layout { measurable, _ ->
                         val placeable =
                             measurable.measure(
                                 Constraints.fixed(
-                                    width = bounds.width,
-                                    height = bounds.height,
+                                    width = geometry.currentBounds.width,
+                                    height = geometry.currentBounds.height,
                                 ),
                             )
 
                         layout(
-                            width = bounds.width,
-                            height = bounds.height,
+                            width = geometry.currentBounds.width,
+                            height = geometry.currentBounds.height,
                         ) {
                             placeable.place(
                                 x = 0,
@@ -251,14 +271,35 @@ fun AddDrinkMorphingSurface(
                         },
                 )
 
-                if (progress > EXPANDED_CONTENT_FADE_START_PROGRESS) {
+                if (shouldComposeExpandedContent) {
                     Box(
                         modifier =
-                            Modifier.graphicsLayer {
-                                alpha = expandedContentAlpha
-                                scaleX = expandedContentScale
-                                scaleY = expandedContentScale
-                            },
+                            Modifier
+                                .graphicsLayer {
+                                    alpha = expandedContentAlpha
+                                    scaleX = expandedContentScale
+                                    scaleY = expandedContentScale
+                                }.layout { measurable, constraints ->
+                                    val placeable =
+                                        measurable.measure(
+                                            Constraints.fixed(
+                                                width = geometry.expandedBounds.width,
+                                                height = geometry.expandedBounds.height,
+                                            ),
+                                        )
+                                    val width = constraints.maxWidth
+                                    val height = constraints.maxHeight
+
+                                    layout(
+                                        width = width,
+                                        height = height,
+                                    ) {
+                                        placeable.place(
+                                            x = (width - geometry.expandedBounds.width) / 2,
+                                            y = (height - geometry.expandedBounds.height) / 2,
+                                        )
+                                    }
+                                },
                     ) {
                         AddDrinkExpandedContent(
                             state = dialogState ?: lastDialogState,
@@ -316,6 +357,11 @@ fun AddDrinkScrim(
         )
     }
 }
+
+private data class MorphGeometry(
+    val currentBounds: MorphBounds,
+    val expandedBounds: MorphBounds,
+)
 
 private data class MorphBounds(
     val x: Int,
