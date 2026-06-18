@@ -38,8 +38,8 @@ import androidx.compose.ui.unit.lerp as lerpDp
 import kotlin.math.roundToInt
 
 private val DIALOG_SCREEN_MARGIN = 24.dp
-val EXPANDED_MAX_WIDTH = 328.dp
-val EXPANDED_PREFERRED_HEIGHT = 344.dp
+val EXPANDED_MAX_WIDTH = 380.dp
+val EXPANDED_PREFERRED_HEIGHT = 420.dp
 
 private val CLOSED_CORNER_RADIUS = 50.dp
 private val OPEN_CORNER_RADIUS = 36.dp

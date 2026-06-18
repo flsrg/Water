@@ -34,67 +34,74 @@ fun AddDrinkExpandedContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(24.dp),
     ) {
-        Text(
-            text = "Add drink",
-            style = MaterialTheme.typography.headlineSmall,
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Drink type",
-            style = MaterialTheme.typography.titleMedium,
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        Column(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
         ) {
-            state.drinkTypes.forEach { drinkType ->
-                FilterChip(
-                    selected = drinkType == state.selectedDrinkType,
-                    onClick = {
-                        onIntent(WaterIntent.DialogDrinkTypeSelected(drinkType))
-                    },
-                    label = {
-                        Text(text = drinkType.label)
-                    },
-                )
+            Text(
+                text = "Add drink",
+                style = MaterialTheme.typography.headlineSmall,
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "Drink type",
+                style = MaterialTheme.typography.titleMedium,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                state.drinkTypes.forEach { drinkType ->
+                    FilterChip(
+                        selected = drinkType == state.selectedDrinkType,
+                        onClick = {
+                            onIntent(WaterIntent.DialogDrinkTypeSelected(drinkType))
+                        },
+                        label = {
+                            Text(text = drinkType.label)
+                        },
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Volume",
+                style = MaterialTheme.typography.titleMedium,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                state.volumeOptionsMl.forEach { volumeMl ->
+                    FilterChip(
+                        selected = volumeMl == state.selectedAmountMl,
+                        onClick = {
+                            onIntent(WaterIntent.DialogVolumeSelected(volumeMl))
+                        },
+                        label = {
+                            Text(text = "$volumeMl ml")
+                        },
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Volume",
-            style = MaterialTheme.typography.titleMedium,
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            state.volumeOptionsMl.forEach { volumeMl ->
-                FilterChip(
-                    selected = volumeMl == state.selectedAmountMl,
-                    onClick = {
-                        onIntent(WaterIntent.DialogVolumeSelected(volumeMl))
-                    },
-                    label = {
-                        Text(text = "$volumeMl ml")
-                    },
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
