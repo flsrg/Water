@@ -1,8 +1,6 @@
 package dev.flsrg.water.feature.water.presentation
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -19,10 +17,12 @@ val AddDrinkButtonWidth = 160.dp
 val AddDrinkButtonHeight = 52.dp
 
 @Composable
-fun AddDrinkCollapsedContent() {
+fun AddDrinkCollapsedContent(
+    modifier: Modifier = Modifier,
+) {
     Box(
         modifier =
-            Modifier.size(
+            modifier.size(
                 width = AddDrinkButtonWidth,
                 height = AddDrinkButtonHeight,
             ),
