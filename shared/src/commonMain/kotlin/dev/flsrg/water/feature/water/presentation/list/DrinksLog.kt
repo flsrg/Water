@@ -63,7 +63,7 @@ fun DrinksLog(
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(24.dp),
+        contentPadding = PaddingValues(vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item(
@@ -187,7 +187,9 @@ private val drinksPreviewList =
 @Composable
 private fun DrinksLogPreviewLight() {
     MaterialTheme(colorScheme = lightColorScheme()) {
-        Surface {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
             DrinksLog(
                 drinks = drinksPreviewList,
             )
@@ -199,7 +201,9 @@ private fun DrinksLogPreviewLight() {
 @Composable
 private fun DrinksLogPreviewDark() {
     MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
             DrinksLog(
                 drinks = drinksPreviewList,
             )

@@ -51,7 +51,9 @@ fun DrinksLogRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Column {
+            Column(
+                modifier = Modifier.weight(1f),
+            ) {
                 Text(
                     text = drink.drinkType.label,
                     style = MaterialTheme.typography.titleSmall,
@@ -77,7 +79,9 @@ fun DrinksLogRow(
 @Composable
 private fun DrinksLogRowPreviewLight() {
     MaterialTheme(colorScheme = lightColorScheme()) {
-        Surface {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
             DrinksLogRow(
                 drink =
                     DrinkLogItem(0, DrinkType.Coffee, 100, 50, 0),
@@ -90,7 +94,9 @@ private fun DrinksLogRowPreviewLight() {
 @Composable
 private fun DrinksLogRowPreviewDark() {
     MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
             DrinksLogRow(
                 drink =
                     DrinkLogItem(0, DrinkType.Coffee, 100, 50, 0),
