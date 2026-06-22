@@ -29,6 +29,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkButtonHeight
+import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkButtonWidth
+import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkMorphingSurface
+import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkScrim
 import kotlin.math.roundToInt
 
 @Composable
@@ -53,9 +57,10 @@ fun WaterScreen(
         modifier = Modifier.fillMaxSize(),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -94,33 +99,32 @@ fun WaterScreen(
             anchorCenter = addButtonCenter,
             dialogState = state.addDrinkDialog,
             onIntent = onIntent,
-            modifier = Modifier
-                .fillMaxSize()
-                .zIndex(2f),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .zIndex(2f),
         )
     }
 }
 
 @Composable
-private fun AddDrinkButtonAnchor(
-    onPositioned: (IntOffset) -> Unit,
-) {
+private fun AddDrinkButtonAnchor(onPositioned: (IntOffset) -> Unit) {
     Box(
-        modifier = Modifier
-            .size(
-                width = AddDrinkButtonWidth,
-                height = AddDrinkButtonHeight,
-            )
-            .onGloballyPositioned { coordinates ->
-                val bounds = coordinates.boundsInRoot()
+        modifier =
+            Modifier
+                .size(
+                    width = AddDrinkButtonWidth,
+                    height = AddDrinkButtonHeight,
+                ).onGloballyPositioned { coordinates ->
+                    val bounds = coordinates.boundsInRoot()
 
-                onPositioned(
-                    IntOffset(
-                        x = (bounds.left + bounds.width / 2f).roundToInt(),
-                        y = (bounds.top + bounds.height / 2f).roundToInt(),
-                    ),
-                )
-            },
+                    onPositioned(
+                        IntOffset(
+                            x = (bounds.left + bounds.width / 2f).roundToInt(),
+                            y = (bounds.top + bounds.height / 2f).roundToInt(),
+                        ),
+                    )
+                },
     )
 }
 

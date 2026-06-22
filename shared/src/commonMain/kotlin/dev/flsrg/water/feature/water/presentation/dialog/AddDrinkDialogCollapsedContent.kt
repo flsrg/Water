@@ -1,4 +1,4 @@
-package dev.flsrg.water.feature.water.presentation
+package dev.flsrg.water.feature.water.presentation.dialog
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -17,9 +17,7 @@ val AddDrinkButtonWidth = 160.dp
 val AddDrinkButtonHeight = 52.dp
 
 @Composable
-fun AddDrinkCollapsedContent(
-    modifier: Modifier = Modifier,
-) {
+fun AddDrinkCollapsedContent(modifier: Modifier = Modifier) {
     Box(
         modifier =
             modifier.size(

@@ -1,4 +1,4 @@
-package dev.flsrg.water.feature.water.presentation
+package dev.flsrg.water.feature.water.presentation.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,6 +25,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.flsrg.water.feature.water.presentation.AddDrinkDialogState
+import dev.flsrg.water.feature.water.presentation.WaterIntent
 
 @Composable
 fun AddDrinkExpandedContent(
@@ -32,9 +34,10 @@ fun AddDrinkExpandedContent(
     onIntent: (WaterIntent) -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp),
     ) {
         Column(
             modifier =
@@ -133,10 +136,11 @@ fun AddDrinkExpandedContent(
 fun AddDrinkExpandedContentPreviewLight() {
     MaterialTheme(colorScheme = lightColorScheme()) {
         Surface(
-            modifier = Modifier.size(
-                width = EXPANDED_MAX_WIDTH,
-                height = EXPANDED_PREFERRED_HEIGHT,
-            ),
+            modifier =
+                Modifier.size(
+                    width = EXPANDED_MAX_WIDTH,
+                    height = EXPANDED_PREFERRED_HEIGHT,
+                ),
         ) {
             AddDrinkExpandedContent(
                 state = AddDrinkDialogState(),
@@ -151,10 +155,11 @@ fun AddDrinkExpandedContentPreviewLight() {
 fun AddDrinkExpandedContentPreviewDark() {
     MaterialTheme(colorScheme = darkColorScheme()) {
         Surface(
-            modifier = Modifier.size(
-                width = EXPANDED_MAX_WIDTH,
-                height = EXPANDED_PREFERRED_HEIGHT,
-            ),
+            modifier =
+                Modifier.size(
+                    width = EXPANDED_MAX_WIDTH,
+                    height = EXPANDED_PREFERRED_HEIGHT,
+                ),
         ) {
             AddDrinkExpandedContent(
                 state = AddDrinkDialogState(),

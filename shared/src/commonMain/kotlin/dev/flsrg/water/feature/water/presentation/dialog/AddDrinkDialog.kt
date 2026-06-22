@@ -1,4 +1,4 @@
-package dev.flsrg.water.feature.water.presentation
+package dev.flsrg.water.feature.water.presentation.dialog
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.CubicBezierEasing
@@ -28,14 +28,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp as lerpColor
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp as lerpDp
+import dev.flsrg.water.feature.water.presentation.AddDrinkDialogState
+import dev.flsrg.water.feature.water.presentation.WaterIntent
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.lerp as lerpColor
+import androidx.compose.ui.unit.lerp as lerpDp
 
 private val DIALOG_SCREEN_MARGIN = 24.dp
 val EXPANDED_MAX_WIDTH = 380.dp
@@ -140,22 +142,20 @@ fun AddDrinkMorphingSurface(
                     widthPx: Int,
                     heightPx: Int,
                 ): MorphBounds {
-                    val minX = marginPx
-                    val minY = marginPx
                     val maxX =
                         (parentWidthPx - widthPx - marginPx)
-                            .coerceAtLeast(minX)
+                            .coerceAtLeast(marginPx)
                     val maxY =
                         (parentHeightPx - heightPx - marginPx)
-                            .coerceAtLeast(minY)
+                            .coerceAtLeast(marginPx)
 
                     return MorphBounds(
                         x =
                             (anchorCenter.x - widthPx / 2)
-                                .coerceIn(minX, maxX),
+                                .coerceIn(marginPx, maxX),
                         y =
                             (anchorCenter.y - heightPx / 2)
-                                .coerceIn(minY, maxY),
+                                .coerceIn(marginPx, maxY),
                         width = widthPx,
                         height = heightPx,
                     )
@@ -386,8 +386,9 @@ private fun lerpInt(
     start: Int,
     stop: Int,
     fraction: Float,
-): Int = lerpFloat(
-    start = start.toFloat(),
-    stop = stop.toFloat(),
-    fraction = fraction,
-).roundToInt()
+): Int =
+    lerpFloat(
+        start = start.toFloat(),
+        stop = stop.toFloat(),
+        fraction = fraction,
+    ).roundToInt()
