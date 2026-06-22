@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,6 +35,7 @@ import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkButtonHeight
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkButtonWidth
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkMorphingSurface
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkScrim
+import dev.flsrg.water.feature.water.presentation.list.DrinksLog
 import kotlin.math.roundToInt
 
 @Composable
@@ -67,7 +69,7 @@ fun WaterScreen(
                     .fillMaxSize()
                     .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Top,
         ) {
             WaterSummary(
                 summary = state.summary,
@@ -90,6 +92,13 @@ fun WaterScreen(
             ) {
                 Text(text = "Reset")
             }
+
+            DrinksLog(
+                drinks = state.recentDrinks,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            )
         }
 
         AddDrinkScrim(
