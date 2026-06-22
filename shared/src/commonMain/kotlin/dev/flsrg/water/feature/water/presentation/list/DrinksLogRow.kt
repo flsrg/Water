@@ -24,6 +24,12 @@ import androidx.compose.ui.unit.dp
 import dev.flsrg.water.feature.water.data.DrinkLogItem
 import dev.flsrg.water.feature.water.data.DrinkType
 
+@Suppress("TopLevelPropertyNaming")
+private const val PREVIEW_DRINK_VOLUME_ML = 100
+
+@Suppress("TopLevelPropertyNaming")
+private const val PREVIEW_HYDRATION_ML = 50
+
 @Composable
 fun DrinksLogRow(
     drink: DrinkLogItem,
@@ -84,7 +90,7 @@ private fun DrinksLogRowPreviewLight() {
         ) {
             DrinksLogRow(
                 drink =
-                    DrinkLogItem(0, DrinkType.Coffee, 100, 50, 0),
+                    DrinkLogItem(0, DrinkType.Coffee, PREVIEW_DRINK_VOLUME_ML, PREVIEW_HYDRATION_ML, 0),
             )
         }
     }
@@ -99,7 +105,7 @@ private fun DrinksLogRowPreviewDark() {
         ) {
             DrinksLogRow(
                 drink =
-                    DrinkLogItem(0, DrinkType.Coffee, 100, 50, 0),
+                    DrinkLogItem(0, DrinkType.Coffee, PREVIEW_DRINK_VOLUME_ML, PREVIEW_HYDRATION_ML, 0),
             )
         }
     }

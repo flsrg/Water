@@ -31,12 +31,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import dev.flsrg.water.feature.water.data.DrinkLogItem
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 private val DeleteRevealWidth = 96.dp
 private val DeleteCardWidth = 88.dp
 
+@Suppress("TopLevelPropertyNaming")
 private const val OPEN_THRESHOLD_FRACTION = 0.4f
+
+@Suppress("TopLevelPropertyNaming")
 private const val DELETE_EXIT_ANIMATION_MILLIS = 220
 
 private enum class SwipeSide {
@@ -51,80 +55,12 @@ fun SwipeToDeleteDrinkRow(
     modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val density = LocalDensity.current
+    val deleteRevealWidthPx = with(LocalDensity.current) { DeleteRevealWidth.toPx() }
 
-    val deleteRevealWidthPx =
-        with(density) {
-            DeleteRevealWidth.toPx()
-        }
-
-    var rowWidthPx by remember {
-        mutableIntStateOf(0)
-    }
-
-    var offsetX by remember(drink.id) {
-        mutableFloatStateOf(0f)
-    }
-
-    var activeSwipeSide by remember(drink.id) {
-        mutableStateOf<SwipeSide?>(null)
-    }
-
-    var isDeleting by remember(drink.id) {
-        mutableStateOf(false)
-    }
-
-    suspend fun animateOffsetTo(targetValue: Float) {
-        animate(
-            initialValue = offsetX,
-            targetValue = targetValue,
-            animationSpec =
-                spring(
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-        ) { value, _ ->
-            offsetX = value
-        }
-    }
-
-    suspend fun closeSwipe() {
-        animateOffsetTo(0f)
-        activeSwipeSide = null
-    }
-
-    suspend fun animateDeleteAndNotify() {
-        if (isDeleting || rowWidthPx == 0) return
-
-        val deleteSide =
-            activeSwipeSide
-                ?: when {
-                    offsetX > 0f -> SwipeSide.Start
-                    offsetX < 0f -> SwipeSide.End
-                    else -> SwipeSide.End
-                }
-
-        isDeleting = true
-        activeSwipeSide = deleteSide
-
-        val targetOffset =
-            when (deleteSide) {
-                SwipeSide.Start -> rowWidthPx.toFloat()
-                SwipeSide.End -> -rowWidthPx.toFloat()
-            }
-
-        animate(
-            initialValue = offsetX,
-            targetValue = targetOffset,
-            animationSpec =
-                tween(
-                    durationMillis = DELETE_EXIT_ANIMATION_MILLIS,
-                ),
-        ) { value, _ ->
-            offsetX = value
-        }
-
-        onDelete(drink)
-    }
+    var rowWidthPx by remember { mutableIntStateOf(0) }
+    var offsetX by remember(drink.id) { mutableFloatStateOf(0f) }
+    var activeSwipeSide by remember(drink.id) { mutableStateOf<SwipeSide?>(null) }
+    var isDeleting by remember(drink.id) { mutableStateOf(false) }
 
     Box(
         modifier =
@@ -138,7 +74,21 @@ fun SwipeToDeleteDrinkRow(
             activeSwipeSide = activeSwipeSide,
             onDeleteClick = {
                 coroutineScope.launch {
-                    animateDeleteAndNotify()
+                    if (isDeleting || rowWidthPx == 0) return@launch
+
+                    val deleteSide = swipeSideForDelete(activeSwipeSide, offsetX)
+
+                    isDeleting = true
+                    activeSwipeSide = deleteSide
+
+                    offsetX =
+                        animateDeleteOffset(
+                            initialOffset = offsetX,
+                            deleteSide = deleteSide,
+                            rowWidthPx = rowWidthPx,
+                        )
+
+                    onDelete(drink)
                 }
             },
             modifier = Modifier.matchParentSize(),
@@ -150,75 +100,146 @@ fun SwipeToDeleteDrinkRow(
                 Modifier
                     .graphicsLayer {
                         translationX = offsetX
-                    }.pointerInput(
+                    }.swipeToRevealDelete(
                         drink.id,
                         deleteRevealWidthPx,
                         isDeleting,
-                    ) {
-                        detectHorizontalDragGestures(
-                            onHorizontalDrag = { change, dragAmount ->
-                                if (isDeleting) return@detectHorizontalDragGestures
-
-                                change.consume()
-
-                                val newOffset =
-                                    (offsetX + dragAmount)
-                                        .coerceIn(
-                                            minimumValue = -deleteRevealWidthPx,
-                                            maximumValue = deleteRevealWidthPx,
-                                        )
-
-                                offsetX = newOffset
-
-                                activeSwipeSide =
-                                    when {
-                                        newOffset > 0f -> SwipeSide.Start
-                                        newOffset < 0f -> SwipeSide.End
-                                        else -> null
-                                    }
-                            },
-                            onDragEnd = {
-                                if (isDeleting) return@detectHorizontalDragGestures
-
-                                val openThreshold =
-                                    deleteRevealWidthPx * OPEN_THRESHOLD_FRACTION
-
-                                val targetOffset =
-                                    when {
-                                        offsetX > openThreshold -> {
-                                            activeSwipeSide = SwipeSide.Start
-                                            deleteRevealWidthPx
-                                        }
-
-                                        offsetX < -openThreshold -> {
-                                            activeSwipeSide = SwipeSide.End
-                                            -deleteRevealWidthPx
-                                        }
-
-                                        else -> {
-                                            0f
-                                        }
-                                    }
-
-                                coroutineScope.launch {
-                                    if (targetOffset == 0f) {
-                                        closeSwipe()
-                                    } else {
-                                        animateOffsetTo(targetOffset)
-                                    }
-                                }
-                            },
-                            onDragCancel = {
-                                if (isDeleting) return@detectHorizontalDragGestures
-
-                                coroutineScope.launch {
-                                    closeSwipe()
-                                }
-                            },
-                        )
-                    },
+                        offsetX = { offsetX },
+                        onOffsetChange = { offsetX = it },
+                        onSwipeSideChange = { activeSwipeSide = it },
+                    ),
         )
     }
+}
+
+private fun Modifier.swipeToRevealDelete(
+    drinkId: Long,
+    deleteRevealWidthPx: Float,
+    isDeleting: Boolean,
+    offsetX: () -> Float,
+    onOffsetChange: (Float) -> Unit,
+    onSwipeSideChange: (SwipeSide?) -> Unit,
+): Modifier =
+    pointerInput(
+        drinkId,
+        deleteRevealWidthPx,
+        isDeleting,
+    ) {
+        coroutineScope {
+            detectHorizontalDragGestures(
+                onHorizontalDrag = { change, dragAmount ->
+                    if (isDeleting) return@detectHorizontalDragGestures
+
+                    change.consume()
+
+                    val newOffset =
+                        (offsetX() + dragAmount)
+                            .coerceIn(
+                                minimumValue = -deleteRevealWidthPx,
+                                maximumValue = deleteRevealWidthPx,
+                            )
+
+                    onOffsetChange(newOffset)
+                    onSwipeSideChange(swipeSideForOffset(newOffset))
+                },
+                onDragEnd = {
+                    if (isDeleting) return@detectHorizontalDragGestures
+
+                    val settledOffset =
+                        settledSwipeOffset(
+                            offsetX = offsetX(),
+                            deleteRevealWidthPx = deleteRevealWidthPx,
+                        )
+
+                    onSwipeSideChange(swipeSideForOffset(settledOffset))
+                    launch {
+                        onOffsetChange(animateSwipeOffset(offsetX(), settledOffset))
+                    }
+                },
+                onDragCancel = {
+                    if (isDeleting) return@detectHorizontalDragGestures
+
+                    launch {
+                        onOffsetChange(animateSwipeOffset(offsetX(), 0f))
+                        onSwipeSideChange(null)
+                    }
+                },
+            )
+        }
+    }
+
+private fun swipeSideForOffset(offsetX: Float): SwipeSide? =
+    when {
+        offsetX > 0f -> SwipeSide.Start
+        offsetX < 0f -> SwipeSide.End
+        else -> null
+    }
+
+private fun swipeSideForDelete(
+    activeSwipeSide: SwipeSide?,
+    offsetX: Float,
+): SwipeSide =
+    activeSwipeSide
+        ?: swipeSideForOffset(offsetX)
+        ?: SwipeSide.End
+
+private fun settledSwipeOffset(
+    offsetX: Float,
+    deleteRevealWidthPx: Float,
+): Float {
+    val openThreshold = deleteRevealWidthPx * OPEN_THRESHOLD_FRACTION
+
+    return when {
+        offsetX > openThreshold -> deleteRevealWidthPx
+        offsetX < -openThreshold -> -deleteRevealWidthPx
+        else -> 0f
+    }
+}
+
+private suspend fun animateSwipeOffset(
+    initialOffset: Float,
+    targetOffset: Float,
+): Float {
+    var offsetX = initialOffset
+
+    animate(
+        initialValue = initialOffset,
+        targetValue = targetOffset,
+        animationSpec =
+            spring(
+                stiffness = Spring.StiffnessMediumLow,
+            ),
+    ) { value, _ ->
+        offsetX = value
+    }
+
+    return offsetX
+}
+
+private suspend fun animateDeleteOffset(
+    initialOffset: Float,
+    deleteSide: SwipeSide,
+    rowWidthPx: Int,
+): Float {
+    var offsetX = initialOffset
+    val targetOffset =
+        when (deleteSide) {
+            SwipeSide.Start -> rowWidthPx.toFloat()
+            SwipeSide.End -> -rowWidthPx.toFloat()
+        }
+
+    animate(
+        initialValue = initialOffset,
+        targetValue = targetOffset,
+        animationSpec =
+            tween(
+                durationMillis = DELETE_EXIT_ANIMATION_MILLIS,
+            ),
+    ) { value, _ ->
+        offsetX = value
+    }
+
+    return offsetX
 }
 
 @Composable

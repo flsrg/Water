@@ -14,6 +14,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -71,10 +72,7 @@ fun DrinksLog(
             key = "drinks_log_title",
             contentType = "title",
         ) {
-            Text(
-                text = "Drinks log",
-                style = MaterialTheme.typography.titleLarge,
-            )
+            DrinksLogTitle()
         }
 
         if (drinks.isEmpty()) {
@@ -82,7 +80,7 @@ fun DrinksLog(
                 key = "empty_drinks_log",
                 contentType = "empty_state",
             ) {
-                EmptyDrinksLog()
+                DrinksLogEmptyState()
             }
         } else {
             items(
@@ -90,23 +88,49 @@ fun DrinksLog(
                 key = { it.id },
                 contentType = { "drink_log_item" },
             ) { drink ->
-                AnimatedDrinksLogRow(
+                DrinksLogItem(
                     drink = drink,
-                    onDelete = onDeleteDrink,
-                    animateAppearance = drink.id in newlyAddedDrinkIds,
-                    modifier =
-                        Modifier.animateItem(
-                            fadeInSpec = tween(durationMillis = 180),
-                            fadeOutSpec = tween(durationMillis = 120),
-                            placementSpec =
-                                spring(
-                                    stiffness = Spring.StiffnessLow,
-                                ),
-                        ),
+                    newlyAddedDrinkIds = newlyAddedDrinkIds,
+                    onDeleteDrink = onDeleteDrink,
                 )
             }
         }
     }
+}
+
+@Composable
+private fun DrinksLogTitle() {
+    Text(
+        text = "Drinks log",
+        style = MaterialTheme.typography.titleLarge,
+    )
+}
+
+@Composable
+private fun DrinksLogEmptyState() {
+    EmptyDrinksLog()
+}
+
+@Composable
+private fun LazyItemScope.DrinksLogItem(
+    drink: DrinkLogItem,
+    newlyAddedDrinkIds: Set<Long>,
+    onDeleteDrink: (DrinkLogItem) -> Unit,
+) {
+    AnimatedDrinksLogRow(
+        drink = drink,
+        onDelete = onDeleteDrink,
+        animateAppearance = drink.id in newlyAddedDrinkIds,
+        modifier =
+            Modifier.animateItem(
+                fadeInSpec = tween(durationMillis = 180),
+                fadeOutSpec = tween(durationMillis = 120),
+                placementSpec =
+                    spring(
+                        stiffness = Spring.StiffnessLow,
+                    ),
+            ),
+    )
 }
 
 @Composable

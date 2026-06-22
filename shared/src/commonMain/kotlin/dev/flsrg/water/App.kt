@@ -12,7 +12,10 @@ import dev.flsrg.water.feature.water.data.SqlDelightWaterRepository
 import dev.flsrg.water.feature.water.presentation.WaterRoute
 
 @Composable
-fun App(databaseDriverFactory: DatabaseDriverFactory) {
+fun App(
+    databaseDriverFactory: DatabaseDriverFactory,
+    modifier: Modifier = Modifier,
+) {
     val repository =
         remember {
             SqlDelightWaterRepository(
@@ -25,7 +28,7 @@ fun App(databaseDriverFactory: DatabaseDriverFactory) {
 
     MaterialTheme {
         Surface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ) {
