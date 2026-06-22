@@ -6,9 +6,11 @@ CREATE TABLE drink_log (
     created_at_epoch_millis INTEGER NOT NULL
 );
 
-selectAll:
+selectFromPeriod:
 SELECT *
 FROM drink_log
+WHERE created_at_epoch_millis >= :startEpochMillis
+  AND created_at_epoch_millis < :endEpochMillis
 ORDER BY created_at_epoch_millis DESC, id DESC;
 
 insert:

@@ -4,6 +4,11 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import dev.flsrg.water.database.WaterDatabase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 class SqlDelightWaterRepository(
@@ -12,17 +17,22 @@ class SqlDelightWaterRepository(
     private val queries = database.drinkLogQueries
 
     override val drinks =
-        queries
-            .selectAll { id, drinkType, volumeMl, hydrationMl, createdAtEpochMillis ->
-                DrinkLogItem(
-                    id = id,
-                    drinkType = DrinkType.valueOf(drinkType),
-                    volumeMl = volumeMl.toInt(),
-                    hydrationMl = hydrationMl.toInt(),
-                    createdAtEpochMillis = createdAtEpochMillis,
-                )
-            }.asFlow()
-            .mapToList(Dispatchers.Default)
+        currentDayPeriodMillis().let { period ->
+            queries
+                .selectFromPeriod(
+                    startEpochMillis = period.startInclusive,
+                    endEpochMillis = period.endExclusive,
+                ) { id, drinkType, volumeMl, hydrationMl, createdAtEpochMillis ->
+                    DrinkLogItem(
+                        id = id,
+                        drinkType = DrinkType.valueOf(drinkType),
+                        volumeMl = volumeMl.toInt(),
+                        hydrationMl = hydrationMl.toInt(),
+                        createdAtEpochMillis = createdAtEpochMillis,
+                    )
+                }.asFlow()
+                .mapToList(Dispatchers.Default)
+        }
 
     override suspend fun addDrink(
         drinkType: DrinkType,
@@ -42,3 +52,32 @@ class SqlDelightWaterRepository(
         queries.clear()
     }
 }
+
+private fun currentDayPeriodMillis(timeZone: TimeZone = TimeZone.currentSystemDefault()): EpochMillisPeriod {
+    val today =
+        Clock.System
+            .now()
+            .toLocalDateTime(timeZone)
+            .date
+
+    val startOfToday =
+        today
+            .atStartOfDayIn(timeZone)
+            .toEpochMilliseconds()
+
+    val startOfTomorrow =
+        today
+            .plus(1, DateTimeUnit.DAY)
+            .atStartOfDayIn(timeZone)
+            .toEpochMilliseconds()
+
+    return EpochMillisPeriod(
+        startInclusive = startOfToday,
+        endExclusive = startOfTomorrow,
+    )
+}
+
+private data class EpochMillisPeriod(
+    val startInclusive: Long,
+    val endExclusive: Long,
+)
