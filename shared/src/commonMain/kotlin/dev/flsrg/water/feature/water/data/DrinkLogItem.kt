@@ -5,4 +5,5 @@ data class DrinkLogItem(
     val drinkType: DrinkType,
     val volumeMl: Int,
     val hydrationMl: Int,
+    val createdAtEpochMillis: Long,
 )

@@ -35,7 +35,7 @@ fun AddDrinkCollapsedContent(modifier: Modifier = Modifier) {
 
 @Preview
 @Composable
-fun AddDrinkCollapsedContentPreviewLight() {
+private fun AddDrinkCollapsedContentPreviewLight() {
     MaterialTheme(colorScheme = lightColorScheme()) {
         Surface {
             AddDrinkCollapsedContent()
@@ -45,7 +45,7 @@ fun AddDrinkCollapsedContentPreviewLight() {
 
 @Preview
 @Composable
-fun AddDrinkCollapsedContentPreviewDark() {
+private fun AddDrinkCollapsedContentPreviewDark() {
     MaterialTheme(colorScheme = darkColorScheme()) {
         Surface {
             AddDrinkCollapsedContent()

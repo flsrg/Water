@@ -32,114 +32,157 @@ import dev.flsrg.water.feature.water.presentation.WaterIntent
 fun AddDrinkExpandedContent(
     state: AddDrinkDialogState,
     onIntent: (WaterIntent) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier =
-            Modifier
+            modifier
                 .fillMaxSize()
                 .padding(24.dp),
     ) {
-        Column(
+        AddDrinkOptionsContent(
+            state = state,
+            onIntent = onIntent,
             modifier =
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
-        ) {
-            Text(
-                text = "Add drink",
-                style = MaterialTheme.typography.headlineSmall,
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "Drink type",
-                style = MaterialTheme.typography.titleMedium,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                state.drinkTypes.forEach { drinkType ->
-                    FilterChip(
-                        selected = drinkType == state.selectedDrinkType,
-                        onClick = {
-                            onIntent(WaterIntent.DialogDrinkTypeSelected(drinkType))
-                        },
-                        label = {
-                            Text(text = drinkType.label)
-                        },
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Volume",
-                style = MaterialTheme.typography.titleMedium,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                state.volumeOptionsMl.forEach { volumeMl ->
-                    FilterChip(
-                        selected = volumeMl == state.selectedAmountMl,
-                        onClick = {
-                            onIntent(WaterIntent.DialogVolumeSelected(volumeMl))
-                        },
-                        label = {
-                            Text(text = "$volumeMl ml")
-                        },
-                    )
-                }
-            }
-        }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
+        AddDrinkDialogActions(onIntent = onIntent)
+    }
+}
+
+@Composable
+private fun AddDrinkOptionsContent(
+    state: AddDrinkDialogState,
+    onIntent: (WaterIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = "Add drink",
+            style = MaterialTheme.typography.headlineSmall,
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        AddDrinkTypeOptions(
+            state = state,
+            onIntent = onIntent,
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        AddDrinkVolumeOptions(
+            state = state,
+            onIntent = onIntent,
+        )
+    }
+}
+
+@Composable
+private fun AddDrinkTypeOptions(
+    state: AddDrinkDialogState,
+    onIntent: (WaterIntent) -> Unit,
+) {
+    Column {
+        Text(
+            text = "Drink type",
+            style = MaterialTheme.typography.titleMedium,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            TextButton(
-                onClick = {
-                    onIntent(WaterIntent.AddDrinkDialogDismissed)
-                },
-            ) {
-                Text(text = "Cancel")
+            state.drinkTypes.forEach { drinkType ->
+                FilterChip(
+                    selected = drinkType == state.selectedDrinkType,
+                    onClick = {
+                        onIntent(WaterIntent.DialogDrinkTypeSelected(drinkType))
+                    },
+                    label = {
+                        Text(text = drinkType.label)
+                    },
+                )
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.width(8.dp))
+@Composable
+private fun AddDrinkVolumeOptions(
+    state: AddDrinkDialogState,
+    onIntent: (WaterIntent) -> Unit,
+) {
+    Column {
+        Text(
+            text = "Volume",
+            style = MaterialTheme.typography.titleMedium,
+        )
 
-            Button(
-                onClick = {
-                    onIntent(WaterIntent.AddDrinkConfirmed)
-                },
-            ) {
-                Text(text = "Add")
+        Spacer(modifier = Modifier.height(8.dp))
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            state.volumeOptionsMl.forEach { volumeMl ->
+                FilterChip(
+                    selected = volumeMl == state.selectedAmountMl,
+                    onClick = {
+                        onIntent(WaterIntent.DialogVolumeSelected(volumeMl))
+                    },
+                    label = {
+                        Text(text = "$volumeMl ml")
+                    },
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun AddDrinkDialogActions(onIntent: (WaterIntent) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+    ) {
+        TextButton(
+            onClick = {
+                onIntent(WaterIntent.AddDrinkDialogDismissed)
+            },
+        ) {
+            Text(text = "Cancel")
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Button(
+            onClick = {
+                onIntent(WaterIntent.AddDrinkConfirmed)
+            },
+        ) {
+            Text(text = "Add")
         }
     }
 }
 
 @Preview
 @Composable
-fun AddDrinkExpandedContentPreviewLight() {
+private fun AddDrinkExpandedContentPreviewLight() {
     MaterialTheme(colorScheme = lightColorScheme()) {
         Surface(
             modifier =
                 Modifier.size(
-                    width = EXPANDED_MAX_WIDTH,
-                    height = EXPANDED_PREFERRED_HEIGHT,
+                    width = ExpandedMaxWidth,
+                    height = ExpandedPreferredHeight,
                 ),
         ) {
             AddDrinkExpandedContent(
@@ -152,13 +195,13 @@ fun AddDrinkExpandedContentPreviewLight() {
 
 @Preview
 @Composable
-fun AddDrinkExpandedContentPreviewDark() {
+private fun AddDrinkExpandedContentPreviewDark() {
     MaterialTheme(colorScheme = darkColorScheme()) {
         Surface(
             modifier =
                 Modifier.size(
-                    width = EXPANDED_MAX_WIDTH,
-                    height = EXPANDED_PREFERRED_HEIGHT,
+                    width = ExpandedMaxWidth,
+                    height = ExpandedPreferredHeight,
                 ),
         ) {
             AddDrinkExpandedContent(

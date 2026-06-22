@@ -3,6 +3,11 @@ package dev.flsrg.water.feature.water.presentation
 import dev.flsrg.water.feature.water.data.DrinkLogItem
 import dev.flsrg.water.feature.water.data.DrinkType
 
+private object DrinkVolumeOption {
+    const val DEFAULT_ML = 300
+    const val LARGE_ML = 500
+}
+
 data class WaterUiState(
     val summary: WaterSummaryState = WaterSummaryState(),
     val addDrinkDialog: AddDrinkDialogState? = null,
@@ -28,9 +33,9 @@ data class WaterSummaryState(
 
 data class AddDrinkDialogState(
     val selectedDrinkType: DrinkType = DrinkType.Water,
-    val selectedAmountMl: Int = 300,
+    val selectedAmountMl: Int = DrinkVolumeOption.DEFAULT_ML,
     val drinkTypes: List<DrinkType> = DrinkType.entries,
-    val volumeOptionsMl: List<Int> = listOf(300, 500),
+    val volumeOptionsMl: List<Int> = listOf(DrinkVolumeOption.DEFAULT_ML, DrinkVolumeOption.LARGE_ML),
 )
 
 sealed interface WaterIntent {

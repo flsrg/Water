@@ -1,18 +1,24 @@
 package dev.flsrg.water.feature.water.presentation
 
 import androidx.lifecycle.ViewModel
-import dev.flsrg.water.feature.water.data.DrinkLogItem
+import androidx.lifecycle.viewModelScope
 import dev.flsrg.water.feature.water.data.DrinkType
+import dev.flsrg.water.feature.water.data.WaterRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class WaterViewModel : ViewModel() {
+class WaterViewModel(
+    private val repository: WaterRepository,
+) : ViewModel() {
     private val _state = MutableStateFlow(WaterUiState())
     val state: StateFlow<WaterUiState> = _state.asStateFlow()
 
-    private var nextDrinkId = 0L
+    init {
+        observeDrinks()
+    }
 
     fun onIntent(intent: WaterIntent) {
         when (intent) {
@@ -22,6 +28,24 @@ class WaterViewModel : ViewModel() {
             is WaterIntent.DialogVolumeSelected -> selectDialogVolume(intent.volumeMl)
             WaterIntent.AddDrinkConfirmed -> confirmAddDrink()
             WaterIntent.ResetClicked -> reset()
+        }
+    }
+
+    private fun observeDrinks() {
+        viewModelScope.launch {
+            repository.drinks.collect { drinks ->
+                val consumedMl = drinks.sumOf { it.hydrationMl }
+
+                _state.update { currentState ->
+                    currentState.copy(
+                        summary =
+                            currentState.summary.copy(
+                                consumedMl = consumedMl,
+                            ),
+                        recentDrinks = drinks,
+                    )
+                }
+            }
         }
     }
 
@@ -67,35 +91,23 @@ class WaterViewModel : ViewModel() {
     }
 
     private fun confirmAddDrink() {
+        val dialogState = _state.value.addDrinkDialog ?: return
+
         _state.update {
-            val dialogState = it.addDrinkDialog ?: return@update it
+            it.copy(addDrinkDialog = null)
+        }
 
-            val hydrationMl =
-                (dialogState.selectedAmountMl * dialogState.selectedDrinkType.hydrationMultiplier).toInt()
-
-            val drinkLogItem =
-                DrinkLogItem(
-                    id = nextDrinkId++,
-                    drinkType = dialogState.selectedDrinkType,
-                    volumeMl = dialogState.selectedAmountMl,
-                    hydrationMl = hydrationMl,
-                )
-
-            it.copy(
-                summary =
-                    it.summary.copy(
-                        consumedMl = it.summary.consumedMl + hydrationMl,
-                    ),
-                recentDrinks = listOf(drinkLogItem) + it.recentDrinks,
-                addDrinkDialog = null,
+        viewModelScope.launch {
+            repository.addDrink(
+                drinkType = dialogState.selectedDrinkType,
+                volumeMl = dialogState.selectedAmountMl,
             )
         }
     }
 
     private fun reset() {
-        nextDrinkId = 0L
-        _state.update {
-            WaterUiState()
+        viewModelScope.launch {
+            repository.clear()
         }
     }
 }

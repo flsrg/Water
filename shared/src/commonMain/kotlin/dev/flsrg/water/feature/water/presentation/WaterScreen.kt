@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.flsrg.water.feature.water.data.WaterRepository
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkButtonHeight
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkButtonWidth
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkMorphingSurface
@@ -36,7 +37,10 @@ import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkScrim
 import kotlin.math.roundToInt
 
 @Composable
-fun WaterRoute(viewModel: WaterViewModel = viewModel { WaterViewModel() }) {
+fun WaterRoute(
+    repository: WaterRepository,
+    viewModel: WaterViewModel = viewModel { WaterViewModel(repository) },
+) {
     val state by viewModel.state.collectAsState()
 
     WaterScreen(
@@ -49,12 +53,13 @@ fun WaterRoute(viewModel: WaterViewModel = viewModel { WaterViewModel() }) {
 fun WaterScreen(
     state: WaterUiState,
     onIntent: (WaterIntent) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val isDialogOpen = state.addDrinkDialog != null
     var addButtonCenter by remember { mutableStateOf<IntOffset?>(null) }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
     ) {
         Column(
             modifier =
@@ -71,7 +76,7 @@ fun WaterScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             AddDrinkButtonAnchor(
-                onPositioned = { center ->
+                onPosition = { center ->
                     addButtonCenter = center
                 },
             )
@@ -108,7 +113,7 @@ fun WaterScreen(
 }
 
 @Composable
-private fun AddDrinkButtonAnchor(onPositioned: (IntOffset) -> Unit) {
+private fun AddDrinkButtonAnchor(onPosition: (IntOffset) -> Unit) {
     Box(
         modifier =
             Modifier
@@ -118,7 +123,7 @@ private fun AddDrinkButtonAnchor(onPositioned: (IntOffset) -> Unit) {
                 ).onGloballyPositioned { coordinates ->
                     val bounds = coordinates.boundsInRoot()
 
-                    onPositioned(
+                    onPosition(
                         IntOffset(
                             x = (bounds.left + bounds.width / 2f).roundToInt(),
                             y = (bounds.top + bounds.height / 2f).roundToInt(),
@@ -130,7 +135,7 @@ private fun AddDrinkButtonAnchor(onPositioned: (IntOffset) -> Unit) {
 
 @Preview
 @Composable
-fun WaterScreenPreviewLight() {
+private fun WaterScreenPreviewLight() {
     MaterialTheme(colorScheme = lightColorScheme()) {
         Surface {
             WaterScreen(
@@ -143,7 +148,7 @@ fun WaterScreenPreviewLight() {
 
 @Preview(uiMode = 32, name = "Dark Mode")
 @Composable
-fun WaterScreenPreviewDark() {
+private fun WaterScreenPreviewDark() {
     MaterialTheme(colorScheme = darkColorScheme()) {
         Surface {
             WaterScreen(
