@@ -53,5 +53,7 @@ sealed interface WaterIntent {
 
     data object AddDrinkConfirmed : WaterIntent
 
-    data object ResetClicked : WaterIntent
+    data class DeleteDrinkClicked(
+        val drinkId: Long,
+    ) : WaterIntent
 }

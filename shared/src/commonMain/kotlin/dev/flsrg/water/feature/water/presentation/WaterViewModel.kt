@@ -27,7 +27,7 @@ class WaterViewModel(
             is WaterIntent.DialogDrinkTypeSelected -> selectDialogDrinkType(intent.drinkType)
             is WaterIntent.DialogVolumeSelected -> selectDialogVolume(intent.volumeMl)
             WaterIntent.AddDrinkConfirmed -> confirmAddDrink()
-            WaterIntent.ResetClicked -> reset()
+            is WaterIntent.DeleteDrinkClicked -> deleteDrink(intent.drinkId)
         }
     }
 
@@ -105,9 +105,9 @@ class WaterViewModel(
         }
     }
 
-    private fun reset() {
+    private fun deleteDrink(drinkId: Long) {
         viewModelScope.launch {
-            repository.clear()
+            repository.deleteDrink(id = drinkId)
         }
     }
 }

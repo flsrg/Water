@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import dev.flsrg.water.feature.water.presentation.AddDrinkDialogState
 import dev.flsrg.water.feature.water.presentation.WaterIntent
-import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.lerp as lerpColor
 import androidx.compose.ui.unit.lerp as lerpDp
 
@@ -333,14 +332,3 @@ fun lerpFloat(
     stop: Float,
     fraction: Float,
 ): Float = start + (stop - start) * fraction
-
-private fun lerpInt(
-    start: Int,
-    stop: Int,
-    fraction: Float,
-): Int =
-    lerpFloat(
-        start = start.toFloat(),
-        stop = stop.toFloat(),
-        fraction = fraction,
-    ).roundToInt()

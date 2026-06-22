@@ -36,6 +36,7 @@ import dev.flsrg.water.feature.water.data.DrinkType
 @Composable
 fun DrinksLog(
     drinks: List<DrinkLogItem>,
+    onDeleteDrink: (DrinkLogItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var previousDrinkIds by remember {
@@ -91,6 +92,7 @@ fun DrinksLog(
             ) { drink ->
                 AnimatedDrinksLogRow(
                     drink = drink,
+                    onDelete = onDeleteDrink,
                     animateAppearance = drink.id in newlyAddedDrinkIds,
                     modifier =
                         Modifier.animateItem(
@@ -111,6 +113,7 @@ fun DrinksLog(
 private fun AnimatedDrinksLogRow(
     drink: DrinkLogItem,
     animateAppearance: Boolean,
+    onDelete: (DrinkLogItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val visibleState =
@@ -152,8 +155,9 @@ private fun AnimatedDrinksLogRow(
                     animationSpec = tween(durationMillis = 120),
                 ),
     ) {
-        DrinksLogRow(
+        SwipeToDeleteDrinkRow(
             drink = drink,
+            onDelete = onDelete,
         )
     }
 }
@@ -192,6 +196,7 @@ private fun DrinksLogPreviewLight() {
         ) {
             DrinksLog(
                 drinks = drinksPreviewList,
+                onDeleteDrink = {},
             )
         }
     }
@@ -206,6 +211,7 @@ private fun DrinksLogPreviewDark() {
         ) {
             DrinksLog(
                 drinks = drinksPreviewList,
+                onDeleteDrink = {},
             )
         }
     }

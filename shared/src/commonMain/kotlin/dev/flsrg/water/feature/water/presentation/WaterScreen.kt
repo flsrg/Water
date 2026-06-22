@@ -13,9 +13,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -87,21 +85,15 @@ fun WaterScreen(
                 },
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedButton(
-                onClick = {
-                    onIntent(WaterIntent.ResetClicked)
-                },
-            ) {
-                Text(text = "Reset")
-            }
-
             DrinksLog(
                 drinks = state.recentDrinks,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                onDeleteDrink = {
+                    onIntent(WaterIntent.DeleteDrinkClicked(it.id))
+                },
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
             )
         }
 

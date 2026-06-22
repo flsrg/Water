@@ -48,8 +48,8 @@ class SqlDelightWaterRepository(
         )
     }
 
-    override suspend fun clear() {
-        queries.clear()
+    override suspend fun deleteDrink(id: Long) {
+        queries.deleteById(id = id)
     }
 }
 

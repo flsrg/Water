@@ -10,5 +10,5 @@ interface WaterRepository {
         volumeMl: Int,
     )
 
-    suspend fun clear()
+    suspend fun deleteDrink(id: Long)
 }

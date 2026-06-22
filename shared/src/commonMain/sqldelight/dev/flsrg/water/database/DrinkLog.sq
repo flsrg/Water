@@ -22,5 +22,6 @@ INSERT INTO drink_log(
 )
 VALUES (?, ?, ?, ?);
 
-clear:
-DELETE FROM drink_log;
+deleteById:
+DELETE FROM drink_log
+WHERE id = :id;
