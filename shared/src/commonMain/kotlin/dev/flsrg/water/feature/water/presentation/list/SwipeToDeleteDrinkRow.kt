@@ -1,5 +1,6 @@
 package dev.flsrg.water.feature.water.presentation.list
 
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
@@ -43,6 +44,9 @@ private const val OPEN_THRESHOLD_FRACTION = 0.4f
 @Suppress("TopLevelPropertyNaming")
 private const val DELETE_EXIT_ANIMATION_MILLIS = 220
 
+@Suppress("TopLevelPropertyNaming")
+private const val DELETE_EXIT_DISTANCE_MULTIPLIER = 1.12f
+
 private enum class SwipeSide {
     Start,
     End,
@@ -81,12 +85,12 @@ fun SwipeToDeleteDrinkRow(
                     isDeleting = true
                     activeSwipeSide = deleteSide
 
-                    offsetX =
-                        animateDeleteOffset(
-                            initialOffset = offsetX,
-                            deleteSide = deleteSide,
-                            rowWidthPx = rowWidthPx,
-                        )
+                    animateDeleteOffset(
+                        initialOffset = offsetX,
+                        deleteSide = deleteSide,
+                        rowWidthPx = rowWidthPx,
+                        onOffsetChange = { offsetX = it },
+                    )
 
                     onDelete(drink)
                 }
@@ -153,14 +157,22 @@ private fun Modifier.swipeToRevealDelete(
 
                     onSwipeSideChange(swipeSideForOffset(settledOffset))
                     launch {
-                        onOffsetChange(animateSwipeOffset(offsetX(), settledOffset))
+                        animateSwipeOffset(
+                            initialOffset = offsetX(),
+                            targetOffset = settledOffset,
+                            onOffsetChange = onOffsetChange,
+                        )
                     }
                 },
                 onDragCancel = {
                     if (isDeleting) return@detectHorizontalDragGestures
 
                     launch {
-                        onOffsetChange(animateSwipeOffset(offsetX(), 0f))
+                        animateSwipeOffset(
+                            initialOffset = offsetX(),
+                            targetOffset = 0f,
+                            onOffsetChange = onOffsetChange,
+                        )
                         onSwipeSideChange(null)
                     }
                 },
@@ -199,9 +211,8 @@ private fun settledSwipeOffset(
 private suspend fun animateSwipeOffset(
     initialOffset: Float,
     targetOffset: Float,
-): Float {
-    var offsetX = initialOffset
-
+    onOffsetChange: (Float) -> Unit,
+) {
     animate(
         initialValue = initialOffset,
         targetValue = targetOffset,
@@ -210,22 +221,21 @@ private suspend fun animateSwipeOffset(
                 stiffness = Spring.StiffnessMediumLow,
             ),
     ) { value, _ ->
-        offsetX = value
+        onOffsetChange(value)
     }
-
-    return offsetX
 }
 
 private suspend fun animateDeleteOffset(
     initialOffset: Float,
     deleteSide: SwipeSide,
     rowWidthPx: Int,
-): Float {
-    var offsetX = initialOffset
+    onOffsetChange: (Float) -> Unit,
+) {
+    val exitDistance = rowWidthPx * DELETE_EXIT_DISTANCE_MULTIPLIER
     val targetOffset =
         when (deleteSide) {
-            SwipeSide.Start -> rowWidthPx.toFloat()
-            SwipeSide.End -> -rowWidthPx.toFloat()
+            SwipeSide.Start -> exitDistance
+            SwipeSide.End -> -exitDistance
         }
 
     animate(
@@ -234,12 +244,11 @@ private suspend fun animateDeleteOffset(
         animationSpec =
             tween(
                 durationMillis = DELETE_EXIT_ANIMATION_MILLIS,
+                easing = FastOutLinearInEasing,
             ),
     ) { value, _ ->
-        offsetX = value
+        onOffsetChange(value)
     }
-
-    return offsetX
 }
 
 @Composable
