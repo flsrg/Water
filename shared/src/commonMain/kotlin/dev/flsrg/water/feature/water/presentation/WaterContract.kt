@@ -1,5 +1,7 @@
 package dev.flsrg.water.feature.water.presentation
 
+import dev.flsrg.water.feature.reminder.ReminderSettings
+import dev.flsrg.water.feature.water.DefaultDailyGoalMl
 import dev.flsrg.water.feature.water.data.DrinkLogItem
 import dev.flsrg.water.feature.water.data.DrinkType
 
@@ -10,6 +12,7 @@ private object DrinkVolumeOption {
 
 data class WaterUiState(
     val summary: WaterSummaryState = WaterSummaryState(),
+    val reminderSettings: ReminderSettings = ReminderSettings(),
     val addDrinkDialog: AddDrinkDialogState? = null,
     val recentDrinks: List<DrinkLogItem> = emptyList(),
 )
@@ -17,7 +20,7 @@ data class WaterUiState(
 data class WaterSummaryState(
     val consumedMl: Int = 0,
     val addAmountMl: Int = 250,
-    val dailyGoalMl: Int = 2000,
+    val dailyGoalMl: Int = DefaultDailyGoalMl,
 ) {
     val remainingMl: Int
         get() = (dailyGoalMl - consumedMl).coerceAtLeast(0)
@@ -55,5 +58,13 @@ sealed interface WaterIntent {
 
     data class DeleteDrinkClicked(
         val drinkId: Long,
+    ) : WaterIntent
+
+    data class RemindersEnabledChanged(
+        val enabled: Boolean,
+    ) : WaterIntent
+
+    data class ReminderIntervalChanged(
+        val minutes: Long,
     ) : WaterIntent
 }

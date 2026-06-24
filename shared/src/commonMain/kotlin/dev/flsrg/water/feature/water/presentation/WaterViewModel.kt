@@ -2,6 +2,8 @@ package dev.flsrg.water.feature.water.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.flsrg.water.feature.reminder.ReminderSettingsRepository
+import dev.flsrg.water.feature.reminder.WaterReminderScheduler
 import dev.flsrg.water.feature.water.data.DrinkType
 import dev.flsrg.water.feature.water.data.WaterRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,12 +14,15 @@ import kotlinx.coroutines.launch
 
 class WaterViewModel(
     private val repository: WaterRepository,
+    private val reminderSettingsRepository: ReminderSettingsRepository,
+    private val reminderScheduler: WaterReminderScheduler,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WaterUiState())
     val state: StateFlow<WaterUiState> = _state.asStateFlow()
 
     init {
         observeDrinks()
+        observeReminderSettings()
     }
 
     fun onIntent(intent: WaterIntent) {
@@ -28,6 +33,8 @@ class WaterViewModel(
             is WaterIntent.DialogVolumeSelected -> selectDialogVolume(intent.volumeMl)
             WaterIntent.AddDrinkConfirmed -> confirmAddDrink()
             is WaterIntent.DeleteDrinkClicked -> deleteDrink(intent.drinkId)
+            is WaterIntent.RemindersEnabledChanged -> setRemindersEnabled(intent.enabled)
+            is WaterIntent.ReminderIntervalChanged -> setReminderInterval(intent.minutes)
         }
     }
 
@@ -102,12 +109,70 @@ class WaterViewModel(
                 drinkType = dialogState.selectedDrinkType,
                 volumeMl = dialogState.selectedAmountMl,
             )
+            reminderScheduler.refreshAfterHydrationChanged(_state.value.reminderSettings)
         }
     }
 
     private fun deleteDrink(drinkId: Long) {
         viewModelScope.launch {
             repository.deleteDrink(id = drinkId)
+            reminderScheduler.refreshAfterHydrationChanged(_state.value.reminderSettings)
+        }
+    }
+
+    private fun observeReminderSettings() {
+        viewModelScope.launch {
+            var isInitialSettingsEmission = true
+
+            reminderSettingsRepository.settings.collect { settings ->
+                _state.update {
+                    it.copy(reminderSettings = settings)
+                }
+
+                if (isInitialSettingsEmission && settings.enabled) {
+                    reminderScheduler.refreshAfterHydrationChanged(settings)
+                }
+
+                isInitialSettingsEmission = false
+            }
+        }
+    }
+
+    private fun setRemindersEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            val requestedSettings =
+                _state.value.reminderSettings.copy(
+                    enabled = enabled,
+                )
+            val settings =
+                if (enabled && !reminderScheduler.canSchedule()) {
+                    requestedSettings.copy(enabled = false)
+                } else {
+                    requestedSettings
+                }
+
+            reminderSettingsRepository.save(settings)
+
+            if (settings.enabled) {
+                reminderScheduler.schedule(settings)
+            } else {
+                reminderScheduler.cancel()
+            }
+        }
+    }
+
+    private fun setReminderInterval(minutes: Long) {
+        viewModelScope.launch {
+            val settings =
+                _state.value.reminderSettings.copy(
+                    intervalMinutes = minutes,
+                )
+
+            reminderSettingsRepository.save(settings)
+
+            if (settings.enabled) {
+                reminderScheduler.schedule(settings)
+            }
         }
     }
 }

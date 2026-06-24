@@ -8,22 +8,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import dev.flsrg.water.database.DatabaseDriverFactory
 import dev.flsrg.water.database.WaterDatabase
+import dev.flsrg.water.feature.reminder.SqlDelightReminderSettingsRepository
+import dev.flsrg.water.feature.reminder.WaterReminderScheduler
 import dev.flsrg.water.feature.water.data.SqlDelightWaterRepository
 import dev.flsrg.water.feature.water.presentation.WaterRoute
 
 @Composable
 fun App(
     databaseDriverFactory: DatabaseDriverFactory,
+    reminderScheduler: WaterReminderScheduler,
     modifier: Modifier = Modifier,
 ) {
-    val repository =
+    val database =
         remember {
-            SqlDelightWaterRepository(
-                database =
-                    WaterDatabase(
-                        driver = databaseDriverFactory.createDriver(),
-                    ),
+            WaterDatabase(
+                driver = databaseDriverFactory.createDriver(),
             )
+        }
+    val repository =
+        remember(database) {
+            SqlDelightWaterRepository(database = database)
+        }
+    val reminderSettingsRepository =
+        remember(database) {
+            SqlDelightReminderSettingsRepository(database = database)
         }
 
     MaterialTheme {
@@ -32,7 +40,11 @@ fun App(
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ) {
-            WaterRoute(repository = repository)
+            WaterRoute(
+                repository = repository,
+                reminderSettingsRepository = reminderSettingsRepository,
+                reminderScheduler = reminderScheduler,
+            )
         }
     }
 }

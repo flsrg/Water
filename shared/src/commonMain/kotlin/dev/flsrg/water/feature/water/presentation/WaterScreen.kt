@@ -3,6 +3,8 @@ package dev.flsrg.water.feature.water.presentation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,45 +14,35 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.flsrg.water.feature.water.data.WaterRepository
+import dev.flsrg.water.feature.reminder.ReminderSettings
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkButtonHeight
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkButtonWidth
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkMorphingSurface
 import dev.flsrg.water.feature.water.presentation.dialog.AddDrinkScrim
 import dev.flsrg.water.feature.water.presentation.list.DrinksLog
 import kotlin.math.roundToInt
-
-@Composable
-fun WaterRoute(
-    repository: WaterRepository,
-    viewModel: WaterViewModel = viewModel { WaterViewModel(repository) },
-) {
-    val state by viewModel.state.collectAsState()
-
-    WaterScreen(
-        state = state,
-        onIntent = viewModel::onIntent,
-    )
-}
 
 @Composable
 fun WaterScreen(
@@ -75,6 +67,13 @@ fun WaterScreen(
         ) {
             WaterSummary(
                 summary = state.summary,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ReminderSettingsSection(
+                settings = state.reminderSettings,
+                onIntent = onIntent,
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -147,6 +146,73 @@ private fun AddDrinkButtonAnchor(
                     )
                 },
     )
+}
+
+@Composable
+private fun ReminderSettingsSection(
+    settings: ReminderSettings,
+    onIntent: (WaterIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val intervalOptions = listOf(15L, 30L, 60L, 120L)
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        HorizontalDivider()
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = "Reminders",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = "Every ${settings.intervalMinutes} min",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Switch(
+                checked = settings.enabled,
+                onCheckedChange = {
+                    onIntent(WaterIntent.RemindersEnabledChanged(it))
+                },
+            )
+        }
+
+        FlowRow(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .alpha(if (settings.enabled) 1f else 0.48f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            intervalOptions.forEach { minutes ->
+                FilterChip(
+                    selected = settings.intervalMinutes == minutes,
+                    enabled = settings.enabled,
+                    onClick = {
+                        onIntent(WaterIntent.ReminderIntervalChanged(minutes))
+                    },
+                    label = {
+                        Text(text = "$minutes min")
+                    },
+                )
+            }
+        }
+    }
 }
 
 @Preview
