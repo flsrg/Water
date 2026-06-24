@@ -79,12 +79,6 @@ fun WaterScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            AddDrinkButtonAnchor(
-                onPosition = { center ->
-                    addButtonCenter = center
-                },
-            )
-
             DrinksLog(
                 drinks = state.recentDrinks,
                 onDeleteDrink = {
@@ -96,6 +90,20 @@ fun WaterScreen(
                         .weight(1f),
             )
         }
+
+        AddDrinkButtonAnchor(
+            onPosition = { center ->
+                addButtonCenter = center
+            },
+            modifier =
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(
+                        end = 24.dp,
+                        bottom = 24.dp,
+                    ),
+        )
 
         AddDrinkScrim(
             visible = isDialogOpen,
@@ -118,10 +126,13 @@ fun WaterScreen(
 }
 
 @Composable
-private fun AddDrinkButtonAnchor(onPosition: (IntOffset) -> Unit) {
+private fun AddDrinkButtonAnchor(
+    onPosition: (IntOffset) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Box(
         modifier =
-            Modifier
+            modifier
                 .size(
                     width = AddDrinkButtonWidth,
                     height = AddDrinkButtonHeight,
