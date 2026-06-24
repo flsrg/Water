@@ -18,18 +18,11 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Clock
 
-private const val ReminderRequestPrefix = "drink-water-reminder"
-private const val MaxPendingReminderRequests = 64
-private const val ReminderCategory = "DRINK_REMINDER"
-
 class IosWaterReminderScheduler(
     private val databaseDriverFactory: DatabaseDriverFactory = DatabaseDriverFactory(),
     private val notificationCenter: UNUserNotificationCenter = UNUserNotificationCenter.currentNotificationCenter(),
 ) : WaterReminderScheduler {
-    private val reminderRequestIds =
-        List(MaxPendingReminderRequests) { index ->
-            "$ReminderRequestPrefix-$index"
-        }
+    private val reminderRequestIds = ReminderNotificationSpec.iosPendingRequestIdentifiers
 
     override suspend fun canSchedule(): Boolean {
         val settings =
@@ -63,28 +56,24 @@ class IosWaterReminderScheduler(
 
         val now = Clock.System.now()
         val consumedTodayMl = consumedTodayMl()
-        val plannedReminders =
-            planHydrationReminderInstants(
+        val reminderRequests =
+            buildIosReminderRequests(
                 settings = settings,
                 now = now,
                 consumedTodayMl = consumedTodayMl,
-                maxRequests = MaxPendingReminderRequests,
+                canSchedule = true,
             )
 
-        plannedReminders.forEachIndexed { index, reminderTime ->
-            val secondsFromNow =
-                ((reminderTime.toEpochMilliseconds() - now.toEpochMilliseconds()).coerceAtLeast(1_000L))
-                    .toDouble() / 1_000.0
-
+        reminderRequests.forEach { reminderRequest ->
             val trigger =
                 UNTimeIntervalNotificationTrigger.triggerWithTimeInterval(
-                    timeInterval = secondsFromNow,
+                    timeInterval = reminderRequest.delaySeconds,
                     repeats = false,
                 )
             val request =
                 UNNotificationRequest.requestWithIdentifier(
-                    identifier = reminderRequestIds[index],
-                    content = reminderContent(),
+                    identifier = reminderRequest.identifier,
+                    content = reminderContent(reminderRequest),
                     trigger = trigger,
                 )
 
@@ -112,12 +101,12 @@ class IosWaterReminderScheduler(
         }
     }
 
-    private fun reminderContent(): UNMutableNotificationContent =
+    private fun reminderContent(reminderRequest: IosReminderRequestSpec): UNMutableNotificationContent =
         UNMutableNotificationContent().apply {
-            setTitle("Time to drink water")
-            setBody("Add your next drink")
+            setTitle(reminderRequest.title)
+            setBody(reminderRequest.body)
             setSound(UNNotificationSound.defaultSound())
-            setCategoryIdentifier(ReminderCategory)
+            setCategoryIdentifier(reminderRequest.categoryIdentifier)
         }
 
     private fun logSchedulingError(error: NSError?) {

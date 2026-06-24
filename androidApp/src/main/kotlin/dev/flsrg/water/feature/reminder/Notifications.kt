@@ -36,12 +36,12 @@ object WaterNotificationChannels {
 }
 
 object WaterNotificationIntents {
-    const val EXTRA_ACTION = "dev.flsrg.water.extra.ACTION"
-    const val ACTION_OPEN_ADD_DRINK = "OPEN_ADD_DRINK"
+    const val EXTRA_ACTION = ReminderNotificationSpec.ANDROID_ACTION_EXTRA
+    const val ACTION_OPEN_ADD_DRINK = ReminderNotificationSpec.ANDROID_OPEN_ADD_DRINK_ACTION
 }
 
 object WaterNotificationIds {
-    const val DRINK_REMINDER = 2001
+    const val DRINK_REMINDER = ReminderNotificationSpec.ANDROID_DRINK_REMINDER_NOTIFICATION_ID
 }
 
 fun openAddDrinkPendingIntent(context: Context): PendingIntent {
@@ -53,7 +53,7 @@ fun openAddDrinkPendingIntent(context: Context): PendingIntent {
 
     return PendingIntent.getActivity(
         context,
-        1001,
+        ReminderNotificationSpec.ANDROID_OPEN_ADD_DRINK_REQUEST_CODE,
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
@@ -70,8 +70,8 @@ fun showDrinkReminder(context: Context) {
         NotificationCompat
             .Builder(context, WaterNotificationChannels.REMINDERS)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Time to drink water")
-            .setContentText("Add your next drink")
+            .setContentTitle(ReminderNotificationSpec.TITLE)
+            .setContentText(ReminderNotificationSpec.BODY)
             .setContentIntent(pendingIntent)
             .addAction(
                 R.drawable.ic_add,

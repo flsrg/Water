@@ -3,8 +3,8 @@ import UserNotifications
 import Shared
 
 final class NotificationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-    private let reminderCategory = "DRINK_REMINDER"
-    private let openAddDrinkAction = "OPEN_ADD_DRINK"
+    private let reminderCategory = ReminderNotificationSpec.shared.IOS_CATEGORY_IDENTIFIER
+    private let openAddDrinkAction = ReminderNotificationSpec.shared.IOS_OPEN_ADD_DRINK_ACTION
 
     func application(
         _ application: UIApplication,

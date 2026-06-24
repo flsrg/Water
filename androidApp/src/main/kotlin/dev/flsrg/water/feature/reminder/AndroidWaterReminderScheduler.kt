@@ -26,13 +26,13 @@ class AndroidWaterReminderScheduler(
             ).build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            "drink-water-reminder",
+            ReminderNotificationSpec.ANDROID_UNIQUE_WORK_NAME,
             ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
             request,
         )
     }
 
     override suspend fun cancel() {
-        WorkManager.getInstance(context).cancelUniqueWork("drink-water-reminder")
+        WorkManager.getInstance(context).cancelUniqueWork(ReminderNotificationSpec.ANDROID_UNIQUE_WORK_NAME)
     }
 }
