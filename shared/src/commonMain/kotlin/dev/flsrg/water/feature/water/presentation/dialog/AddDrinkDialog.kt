@@ -9,8 +9,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -42,6 +46,8 @@ val ExpandedPreferredHeight = 420.dp
 
 private val ClosedCornerRadius = 50.dp
 private val OpenCornerRadius = 36.dp
+private val CollapsedFabElevation = 6.dp
+private val ExpandedDialogElevation = 8.dp
 
 private object MorphTiming {
     const val OPEN_DURATION_MILLIS = 420
@@ -178,11 +184,25 @@ private fun AddDrinkMorphingContainer(
     colorScheme: ColorScheme,
     onIntent: (WaterIntent) -> Unit,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val morphElevation = lerpDp(CollapsedFabElevation, ExpandedDialogElevation, progress)
+    val containerElevation =
+        if (progress == 0f && isHovered && !isPressed && !isFocused) {
+            ExpandedDialogElevation
+        } else {
+            morphElevation
+        }
+
     Surface(
         modifier =
             Modifier
                 .morphContainerLayout(geometry.currentBounds)
                 .clickable(
+                    interactionSource = interactionSource,
+                    indication = LocalIndication.current,
                     enabled = !isExpanded,
                     onClick = {
                         onIntent(WaterIntent.AddDrinkClicked)
@@ -208,8 +228,8 @@ private fun AddDrinkMorphingContainer(
                 stop = colorScheme.onSurface,
                 fraction = progress,
             ),
-        tonalElevation = lerpDp(0.dp, 8.dp, progress),
-        shadowElevation = lerpDp(0.dp, 8.dp, progress),
+        tonalElevation = containerElevation,
+        shadowElevation = containerElevation,
     ) {
         AddDrinkMorphingContent(
             geometry = geometry,
